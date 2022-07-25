@@ -18,7 +18,7 @@ import (
 
 func main() {
 	f, err := os.Create("results.txt")
-	if err == nil {
+	if err != nil {
 		f = os.Stdout
 	}
 
