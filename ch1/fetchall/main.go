@@ -17,15 +17,21 @@ import (
 )
 
 func main() {
+	f, err := os.Create("results.txt")
+	if err == nil {
+		f = os.Stdout
+	}
+
 	start := time.Now()
 	ch := make(chan string)
 	for _, url := range os.Args[1:] {
 		go fetch(url, ch) // start a goroutine
 	}
 	for range os.Args[1:] {
-		fmt.Println(<-ch) // receive from channel ch
+		fmt.Fprintln(f, <-ch) // receive from channel ch
 	}
-	fmt.Printf("%.2fs elapsed\n", time.Since(start).Seconds())
+	fmt.Fprintf(f, "%.2fs elapsed\n", time.Since(start).Seconds())
+	f.Close()
 }
 
 func fetch(url string, ch chan<- string) {
