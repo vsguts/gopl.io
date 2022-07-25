@@ -5,6 +5,8 @@
 // See page 13.
 //!+main
 
+// http://localhost:8000/?cycles=5&res=0.001&size=200&nframes=128&delay=5
+
 // Lissajous generates GIF animations of random Lissajous figures.
 package main
 
@@ -15,7 +17,9 @@ import (
 	"io"
 	"math"
 	"math/rand"
+	"net/url"
 	"os"
+	"strconv"
 )
 
 //!-main
@@ -43,7 +47,7 @@ func main() {
 	if len(os.Args) > 1 && os.Args[1] == "web" {
 		//!+http
 		handler := func(w http.ResponseWriter, r *http.Request) {
-			lissajous(w, diffColors)
+			lissajous(w, diffColors, r.URL.Query())
 		}
 		http.HandleFunc("/", handler)
 		//!-http
@@ -51,20 +55,29 @@ func main() {
 		return
 	}
 	//!+main
-	lissajous(os.Stdout, diffColors)
+	var params = make(url.Values)
+	lissajous(os.Stdout, diffColors, params)
 }
 
-func lissajous(out io.Writer, diffColors bool) {
+func lissajous(out io.Writer, diffColors bool, params url.Values) {
 	const (
-		cycles  = 5     // number of complete x oscillator revolutions
-		res     = 0.001 // angular resolution
-		size    = 100   // image canvas covers [-size..+size]
-		nframes = 64    // number of animation frames
-		delay   = 8     // delay between frames in 10ms units
+		cyclesDefault  = 5     // number of complete x oscillator revolutions
+		resDefault     = 0.001 // angular resolution
+		sizeDefault    = 100   // image canvas covers [-size..+size]
+		nframesDefault = 64    // number of animation frames
+		delayDefault   = 8     // delay between frames in 10ms units
+	)
+
+	var (
+		cycles  = getFloatParam(params["cycles"], cyclesDefault)
+		res     = getFloatParam(params["res"], resDefault)
+		size    = getIntParam(params["size"], sizeDefault)
+		nframes = getIntParam(params["nframes"], nframesDefault)
+		delay   = getIntParam(params["delay"], delayDefault)
 	)
 
 	palette := getPalette()
-	color := getColorIndex(palette)
+	colorIndex := getColorIndex(palette)
 
 	freq := rand.Float64() * 3.0 // relative frequency of y oscillator
 	anim := gif.GIF{LoopCount: nframes}
@@ -75,11 +88,11 @@ func lissajous(out io.Writer, diffColors bool) {
 		for t := 0.0; t < cycles*2*math.Pi; t += res {
 			x := math.Sin(t)
 			y := math.Sin(t*freq + phase)
-			colorIndex := color
+			colorIndex := colorIndex
 			if diffColors == true {
 				colorIndex = getColorIndex(palette)
 			}
-			img.SetColorIndex(size+int(x*size+0.5), size+int(y*size+0.5), colorIndex)
+			img.SetColorIndex(size+int(x*float64(size)+0.5), size+int(y*float64(size)+0.5), colorIndex)
 		}
 		phase += 0.1
 		anim.Delay = append(anim.Delay, delay)
@@ -107,4 +120,33 @@ func getRandUint() uint8 {
 
 func getColorIndex(palette []color.Color) uint8 {
 	return uint8(rand.Intn(len(palette) + 1))
+}
+
+func getParam(params []string) string {
+	if len(params) > 0 {
+		return params[0]
+	}
+	return ""
+}
+
+func getFloatParam(params []string, defaultValue float64) float64 {
+	res := getParam(params)
+	if len(res) > 0 {
+		parseRes, err := strconv.ParseFloat(res, 64)
+		if err == nil {
+			return parseRes
+		}
+	}
+	return defaultValue
+}
+
+func getIntParam(params []string, defaultValue int) int {
+	res := getParam(params)
+	if len(res) > 0 {
+		parseRes, err := strconv.Atoi(res)
+		if err == nil {
+			return parseRes
+		}
+	}
+	return defaultValue
 }
