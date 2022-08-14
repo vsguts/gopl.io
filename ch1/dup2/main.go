@@ -56,3 +56,5 @@ func countLines(f *os.File, counts map[string]int) bool {
 	// NOTE: ignoring potential errors from input.Err()
 	return found
 }
+
+//!-
