@@ -25,6 +25,7 @@ func main() {
 		f := tempconv.Fahrenheit(t)
 		c := tempconv.Celsius(t)
 		k := tempconv.Kelvin(t)
+		// Ex2.1
 		fmt.Printf("%s = %s, %s;  %s = %s, %s;  %s = %s, %s\n",
 			c, tempconv.CToF(c), tempconv.CToK(c),
 			f, tempconv.FToC(f), tempconv.FToK(f),

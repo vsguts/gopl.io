@@ -9,6 +9,24 @@ import (
 	"gopl.io/ch2/popcount"
 )
 
+// Ex2.3, Ex2.4, Ex2.5
+func TestPopCount(t *testing.T) {
+	const x = 1234567894236
+	origRes := popcount.PopCount(x)
+	res := popcount.PopCountFor(x)
+	if origRes != res {
+		t.Errorf("Results are not the same. Expected: %v, Actual: %v", origRes, res)
+	}
+	res = popcount.PopCountShift(x)
+	if origRes != res {
+		t.Errorf("Results are not the same. Expected: %v, Actual: %v", origRes, res)
+	}
+	res = popcount.PopCountAnd(x)
+	if origRes != res {
+		t.Errorf("Results are not the same. Expected: %v, Actual: %v", origRes, res)
+	}
+}
+
 // -- Alternative implementations --
 
 func BitCount(x uint64) int {
@@ -46,6 +64,27 @@ func PopCountByShifting(x uint64) int {
 func BenchmarkPopCount(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		popcount.PopCount(0x1234567890ABCDEF)
+	}
+}
+
+// Ex2.3
+func BenchmarkPopCountFor(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		popcount.PopCountFor(0x1234567890ABCDEF)
+	}
+}
+
+// Ex2.4
+func BenchmarkPopCountShift(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		popcount.PopCountShift(0x1234567890ABCDEF)
+	}
+}
+
+// Ex2.5
+func BenchmarkPopCountAnd(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		popcount.PopCountAnd(0x1234567890ABCDEF)
 	}
 }
 
